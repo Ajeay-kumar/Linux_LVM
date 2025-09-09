@@ -1,0 +1,32 @@
+#Adding and removing physical volume(pv) from a volume group(vg)
+
+# First add a virtual disk image
+# Now prepare new pv
+
+set -x
+
+sudo pvcreate /dev/sdd
+
+#Now extend the VG
+
+sudo vgextend vg-1 /dev/sdd
+
+#Now extend the LV
+
+sudo lvextend -L+1G /dev/vg-1/lv-1
+
+sudo resize2fs /dev/vg-1/lv-1
+
+# Now remove  pv from vg
+
+sudo pvmove /dev/sdc /dev/sdd
+
+#Once the pv is empty remove the pv from volume group
+
+sudo vgreduce vg-1 /dev/sdc
+
+#Remove the LVM signature from the Disk
+
+sudo pvremove /dev/sdc
+
+
