@@ -1,0 +1,47 @@
+#!/bin/bash
+
+#Create Dummy Data (if not already there):
+
+set -x
+echo "This is the original data." | sudo tee /mnt/lvdata/original.txt
+
+#Create an LVM Snapshot:
+
+sudo lvcreate -s -n my_snapshot -L 500M /dev/vg-1/lv-1
+
+#Add some new data and modify existing data on the original volume:
+
+echo "This is new data after snapshot." | sudo tee -a /mnt/lvdata/newfile.txt
+echo "Modified original content." | sudo tee /mnt/lvdata/original.txt
+
+#Check the original LV:
+
+cat /mnt/lvm_data/original.txt
+cat /mnt/lvm_data/newfile.txt
+
+#Access the Snapshot (Optional but Recommended):
+
+sudo mkdir /mnt/snapshot_view
+sudo mount /dev/vg-1/my_snapshot /mnt/snapshot_view
+cat /mnt/snapshot_view/original.txt
+ls /mnt/snapshot_view/
+sudo umount /mnt/snapshot_view
+sudo rmdir /mnt/snapshot_view
+
+#Revert to the Snapshot:
+#Unmount the original LV first:
+
+sudo umount /mnt/lvdata
+
+#Rollback the original LV to the snapshot's state:
+
+sudo lvconvert --merge /dev/vg-1/my_snapshot
+
+#Mount the original LV again
+
+sudo mount /dev/vg-1/lv-1 /mnt/lvdata
+
+#Check the data:
+
+cat /mnt/lvdata/original.txt
+ls /mnt/lvdata/
